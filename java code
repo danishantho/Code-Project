@@ -1,0 +1,77 @@
+import java.util.Scanner;
+
+public class ProcessSimulation {
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        // ----------- INPUT -------------
+        System.out.print("Enter incoming cases per hour: ");
+        int incoming = sc.nextInt();
+
+        System.out.print("Enter number of employees: ");
+        int employees = sc.nextInt();
+
+        System.out.print("Enter cases handled by each employee per hour: ");
+        int rate = sc.nextInt();
+
+        System.out.print("Enter current backlog: ");
+        int backlog = sc.nextInt();
+
+        System.out.print("Enter SLA backlog limit: ");
+        int slaLimit = sc.nextInt();
+
+        System.out.print("Enter simulation hours: ");
+        int hours = sc.nextInt();
+
+        System.out.println("\n--- Simulation Started ---");
+
+        int breachHour = -1;
+
+        // ---------- SIMULATION ----------
+        for (int hour = 1; hour <= hours; hour++) {
+
+            int capacity = employees * rate;
+            int backlogChange = incoming - capacity;
+            backlog += backlogChange;
+
+            if (backlog < 0) {
+                backlog = 0;
+            }
+
+            System.out.println("Hour " + hour +
+                    " | Capacity: " + capacity +
+                    " | Backlog: " + backlog);
+
+            if (backlog >= slaLimit && breachHour == -1) {
+                breachHour = hour;
+            }
+        }
+
+        // ---------- FORECAST RESULT ----------
+        System.out.println("\n--- Forecast Result ---");
+
+        if (breachHour != -1) {
+            int risk = calculateRisk(incoming, employees, rate);
+            System.out.println("⚠ SLA BREACH PREDICTED in hour: " + breachHour);
+            System.out.println("Estimated Risk: " + risk + "%");
+        } else {
+            System.out.println("✅ No SLA breach predicted. System is stable.");
+        }
+
+        sc.close();
+    }
+
+    // --------- SIMPLE RISK LOGIC ---------
+    public static int calculateRisk(int incoming, int employees, int rate) {
+
+        int capacity = employees * rate;
+        int growth = incoming - capacity;
+
+        if (growth <= 0) return 10;
+        else if (growth <= 10) return 40;
+        else if (growth <= 30) return 65;
+        else return 85;
+    }
+}
